@@ -1,0 +1,14 @@
+# Firebase credentials – ĐỪNG COMMIT FILE NÀY LÊN GIT!
+# Lấy thông tin từ Firebase Console → Project Settings → Your apps
+
+VITE_FIREBASE_API_KEY=AIzaSyC_2mEzHC2bFX4oAUuxn8OJj6vVuvsPqDQ
+VITE_FIREBASE_AUTH_DOMAIN=wc-2026-f0a4a.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=wc-2026-f0a4a
+VITE_FIREBASE_STORAGE_BUCKET=wc-2026-f0a4a.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=873489935173
+VITE_FIREBASE_APP_ID=1:873489935173:web:b4b9ff618885b1a3b56c2c
+
+# Cloudinary – lấy từ cloudinary.com → Dashboard
+# Upload preset: Settings → Upload → Add upload preset → Signing mode: Unsigned
+VITE_CLOUDINARY_CLOUD_NAME=duzxusfjv
+VITE_CLOUDINARY_UPLOAD_PRESET=wc-2026

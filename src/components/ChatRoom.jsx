@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import { uploadImage } from '../cloudinary'
+import { usePresence } from '../hooks/usePresence'
 import Message from './Message'
 import { isSameDay, formatDate, getAvatarColor, getInitials } from '../utils'
 
@@ -22,11 +23,15 @@ export default function ChatRoom({ userName, onChangeName }) {
   const [sending, setSending] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(null)
+  const [showOnline, setShowOnline] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
+  const dragCounter = useRef(0)
 
   const [firestoreError, setFirestoreError] = useState(null)
+  const onlineUsers = usePresence(userName)
 
   // Subscribe to messages
   useEffect(() => {
@@ -84,18 +89,19 @@ export default function ChatRoom({ userName, onChangeName }) {
   const handleImageSelect = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // Validate type
     if (!file.type.startsWith('image/')) {
       alert('Chỉ hỗ trợ file ảnh!')
       return
     }
-    // Validate size (10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert('Ảnh không được vượt quá 10MB!')
       return
     }
+    await processImageFile(file)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
+  const processImageFile = async (file) => {
     setUploading(true)
     setUploadProgress('Đang tải ảnh...')
     try {
@@ -114,8 +120,6 @@ export default function ChatRoom({ userName, onChangeName }) {
     } finally {
       setUploading(false)
       setUploadProgress(null)
-      // Reset input
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -126,29 +130,119 @@ export default function ChatRoom({ userName, onChangeName }) {
     }
   }
 
+  // ── Drag & Drop ──
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    dragCounter.current += 1
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true)
+    }
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    dragCounter.current -= 1
+    if (dragCounter.current === 0) setIsDragging(false)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+
+  const handleDrop = async (e) => {
+    e.preventDefault()
+    dragCounter.current = 0
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      alert('Chỉ hỗ trợ file ảnh!')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Ảnh không được vượt quá 10MB!')
+      return
+    }
+    await processImageFile(file)
+  }
+
   const avatarColor = getAvatarColor(userName)
   const isBusy = sending || uploading
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', position: 'relative' }}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="drag-overlay">
+          <div className="drag-overlay-inner">
+            <div className="drag-overlay-icon">🖼️</div>
+            <p>Thả ảnh vào đây để gửi</p>
+          </div>
+        </div>
+      )}
       {/* Topbar */}
       <header className="topbar">
         <div className="topbar-brand">
-          <div className="logo-icon">💬</div>
-          <span>Phòng chung</span>
+          <div className="logo-icon">⚽</div>
+          <span>90% con bạc dừng lại trước khi thắng lớn</span>
         </div>
         <div className="topbar-right">
-          <div className="online-count">
+          {/* Online count button */}
+          <button
+            className={`online-count ${showOnline ? 'active' : ''}`}
+            onClick={() => setShowOnline((v) => !v)}
+            title="Xem ai đang online"
+          >
             <span className="online-dot" />
-            <span>Live</span>
-          </div>
-          <div className="user-badge" onClick={onChangeName} title="Đổi tên">
+            <span>{onlineUsers.length} online</span>
+          </button>
+
+          <div className="user-badge">
             <div className="avatar" style={{ background: avatarColor }}>
               {getInitials(userName)}
             </div>
             <span>{userName}</span>
           </div>
         </div>
+
+        {/* Online users dropdown */}
+        {showOnline && (
+          <>
+            <div className="online-backdrop" onClick={() => setShowOnline(false)} />
+            <div className="online-panel">
+              <div className="online-panel-title">
+                <span className="online-dot" style={{ width: 8, height: 8 }} />
+                {onlineUsers.length} người đang online
+              </div>
+              <div className="online-panel-list">
+                {onlineUsers.map((u) => (
+                  <div key={u.userName} className="online-user-item">
+                    <div
+                      className="avatar"
+                      style={{
+                        background: getAvatarColor(u.userName),
+                        width: 30, height: 30, fontSize: 12, borderRadius: 10,
+                      }}
+                    >
+                      {getInitials(u.userName)}
+                    </div>
+                    <span className="online-user-name">
+                      {u.userName}{u.userName === userName ? ' (bạn)' : ''}
+                    </span>
+                    <span className="online-user-dot" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </header>
 
       {/* Messages */}
