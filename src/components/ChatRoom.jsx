@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   collection,
   addDoc,
+  updateDoc,
+  doc,
   query,
   orderBy,
   limit,
@@ -122,6 +124,15 @@ export default function ChatRoom({ userName, onChangeName }) {
       setUploadProgress(null)
     }
   }
+
+  const handleRecall = useCallback(async (msgId) => {
+    if (!window.confirm('Thu hồi tin nhắn này?')) return
+    try {
+      await updateDoc(doc(db, 'messages', msgId), { recalled: true })
+    } catch (err) {
+      console.error('Recall error:', err)
+    }
+  }, [])
 
   const handleKey = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -301,7 +312,7 @@ export default function ChatRoom({ userName, onChangeName }) {
                   <span>{formatDate(msg.createdAt)}</span>
                 </div>
               )}
-              <Message msg={msg} isMe={isMe} showMeta={showMeta} />
+              <Message msg={msg} isMe={isMe} showMeta={showMeta} onRecall={handleRecall} />
             </div>
           )
         })}

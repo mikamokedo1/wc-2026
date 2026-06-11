@@ -341,7 +341,6 @@ body {
 }
 
 .msg-bubble {
-  max-width: min(480px, 72%);
   padding: 10px 14px;
   border-radius: 18px;
   font-size: 14px;
@@ -361,6 +360,52 @@ body {
   border-bottom-left-radius: 5px;
   color: var(--text-primary);
   border: 1px solid var(--border);
+}
+
+/* ── Recall button (absolute, không ảnh hưởng layout) ── */
+.recall-btn {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  animation: fadeIn 0.15s ease;
+}
+
+.recall-btn:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+  transform: scale(1.15);
+}
+
+/* ── Recalled bubble ── */
+.msg-bubble-recalled {
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-bottom-right-radius: 5px;
+}
+
+.msg-bubble-recalled.me-recalled {
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 18px;
 }
 
 /* ── Date separator ── */
@@ -688,9 +733,139 @@ body {
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
-  .topbar { padding: 0 14px; }
-  .messages-wrap { padding: 16px 12px 12px; }
-  .input-bar { padding: 0 12px; gap: 8px; }
-  .msg-bubble { max-width: 85%; }
-  .popup-card { padding: 32px 24px; }
+  :root {
+    --topbar-h: 56px;
+    --input-h: 64px;
+    font-size: 14px;
+  }
+
+  /* Topbar */
+  .topbar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .topbar-brand {
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .topbar-brand .logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .topbar-brand span {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-right {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .online-count span:last-child {
+    display: none; /* chỉ hiện số, ẩn chữ "online" */
+  }
+
+  .online-count {
+    padding: 4px 8px;
+    gap: 5px;
+  }
+
+  .user-badge span {
+    display: none; /* ẩn tên, chỉ hiện avatar */
+  }
+
+  .user-badge {
+    padding: 4px 6px;
+  }
+
+  /* Online panel — full width trên mobile */
+  .online-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+  }
+
+  /* Messages */
+  .messages-wrap {
+    padding: 12px 10px 10px;
+    gap: 3px;
+  }
+
+  /* Bubble */
+  .msg-group > div[style] {
+    max-width: 88% !important;
+  }
+
+  .msg-bubble {
+    font-size: 14px;
+    padding: 9px 13px;
+  }
+
+  .msg-image {
+    max-width: 220px;
+    max-height: 260px;
+  }
+
+  /* Input bar */
+  .input-bar {
+    padding: 0 10px;
+    gap: 8px;
+    /* safe area for phones with home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(var(--input-h) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .input-field {
+    font-size: 16px; /* tránh iOS tự zoom khi focus */
+    height: 40px;
+    padding: 8px 12px;
+  }
+
+  .send-btn,
+  .img-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  /* Popup */
+  .popup-card {
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  .popup-title { font-size: 20px; }
+  .popup-sub { font-size: 13px; margin-bottom: 22px; }
+
+  /* Upload toast */
+  .upload-toast {
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: 16px;
+    transform: none;
+  }
+
+  /* Drag overlay text */
+  .drag-overlay-inner {
+    padding: 24px 32px;
+  }
+
+  .drag-overlay-icon { font-size: 36px; }
+  .drag-overlay-inner p { font-size: 14px; }
+}
+
+/* Extra small screens */
+@media (max-width: 380px) {
+  .topbar-brand span { display: none; }
+  .online-count { display: none; }
 }
