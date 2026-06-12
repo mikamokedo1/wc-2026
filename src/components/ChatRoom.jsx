@@ -506,8 +506,10 @@ export default function ChatRoom({ userName }) {
                 const isMe = msg.userName === userName;
                 const showDate = !prev || !isSameDay(prev.createdAt, msg.createdAt);
                 const showMeta = !prev || prev.userName !== msg.userName || showDate;
+                const nextMsg = allMsgs[i + 1];
+                const isLastInGroup = !nextMsg || nextMsg.userName !== msg.userName;
                 return (
-                  <div key={msg.id}>
+                  <div key={msg.id} style={{ marginBottom: isLastInGroup ? 20 : 3 }}>
                     {showDate && (
                       <div className="date-sep">
                         <span>{formatDate(msg.createdAt)}</span>
